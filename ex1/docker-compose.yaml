@@ -1,0 +1,33 @@
+version: '2'
+services:
+  web_a:
+    image: httpd:alpine
+    expose:
+      - 80
+
+  web_b:
+    image: httpd:alpine
+    links:
+      - web_a
+    expose:
+      - 80
+  
+  web_c:
+    image: httpd:alpine
+    links:
+      - web_a
+      - web_b
+    expose:
+      - 80
+  
+  cpx:
+    image: cpx:11.1-48.10
+    links:
+      - web_a
+      - web_b
+      - web_c
+    ports:
+      - 22
+      - 88
+    tty: true
+    privileged: true
