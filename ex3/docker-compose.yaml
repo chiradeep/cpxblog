@@ -1,4 +1,5 @@
 version: '2'
+
 services:
   accounts_a:
     image: httpd:alpine
@@ -44,3 +45,14 @@ services:
       - 80
     tty: true
     privileged: true
+
+  automate:
+    build: ./automate
+    image: automate
+    container_name: automate
+    depends_on:
+      - cpx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: "host"
+
