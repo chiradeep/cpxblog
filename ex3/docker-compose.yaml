@@ -1,0 +1,58 @@
+version: '2'
+services:
+  accounts_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+    labels:
+      com.widgetshop.service: "Accounts"
+      com.widgetshop.url: "/accounts/*"
+  accounts_b:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+    labels:
+      com.widgetshop.service: "Accounts"
+      com.widgetshop.url: "/accounts/*"
+
+  cart_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+    labels:
+      com.widgetshop.service: "Cart"
+      com.widgetshop.url: "/cart/*"
+  
+  catalog_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+    labels:
+      com.widgetshop.service: "Catalog"
+      com.widgetshop.url: "/catalog/*"
+  catalog_b:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+    labels:
+      com.widgetshop.service: "Catalog"
+      com.widgetshop.url: "/catalog/*"
+  
+  cpx:
+    image: cpx:11.1-48.10
+    ports:
+      - 22
+      - 88
+      - 80
+    tty: true
+    privileged: true

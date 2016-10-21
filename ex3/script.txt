@@ -1,0 +1,38 @@
+$ docker-compose up -d
+$ sleep 30
+$ names=$(docker-compose ps | awk -F" " '{print $1}' | tail -n+3)
+$ for c in $names ; do    ip=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $c);   echo "$c : $ip"; done
+
+# The IP addresses in the following script have to be substituted with the IP addresses obtained above
+$ ssh -p $(docker-compose port cpx 22 | awk -F":" '{print $2}')  root@localhost
+cli_script.sh 'enable feature ContentSwitch'
+cli_script.sh 'add servicegroup accounts HTTP'
+cli_script.sh 'add servicegroup cart HTTP'
+cli_script.sh 'add servicegroup catalog HTTP'
+cli_script.sh 'bind servicegroup accounts 172.21.0.6 80'
+cli_script.sh 'bind servicegroup accounts 172.21.0.5 80'
+cli_script.sh 'bind servicegroup cart 172.21.0.2 80'
+cli_script.sh 'bind servicegroup catalog 172.21.0.3 80'
+cli_script.sh 'bind servicegroup catalog 172.21.0.4 80'
+cli_script.sh 'add lb vserver Accounts HTTP'
+cli_script.sh 'add lb vserver Cart HTTP'
+cli_script.sh 'add lb vserver Catalog HTTP'
+cli_script.sh 'bind lb vserver Accounts accounts'
+cli_script.sh 'bind lb vserver Cart cart'
+cli_script.sh 'bind lb vserver Catalog catalog'
+cli_script.sh 'add cs vserver WidgetShop HTTP 172.21.0.7 88'
+cli_script.sh 'add cs policy accounts_policy -url "/accounts/*"'
+cli_script.sh 'add cs policy cart_policy -url "/cart/*"'
+cli_script.sh 'add cs policy catalog_policy -url "/catalog/*"'
+cli_script.sh 'bind cs vserver WidgetShop -policyname accounts_policy -targetLBVServer Accounts'
+cli_script.sh 'bind cs vserver WidgetShop -policyname cart_policy -targetLBVServer Cart'
+cli_script.sh 'bind cs vserver WidgetShop -policyname catalog_policy -targetLBVServer Catalog'
+cli_script.sh 'show cs vserver WidgetShop'
+exit
+$ port=$(docker-compose port cpx 88 | awk -F":" '{print $2}')
+$ wget http://localhost:$port/accounts/ -O index_accounts.html
+$ wget http://localhost:$port/cart/ -O index_cart.html
+$ wget http://localhost:$port/catalog/ -O index_catalog.html
+$ cat index_accounts.html
+$ cat index_cart.html
+$ cat index_catalog.html
