@@ -1,0 +1,48 @@
+version: '2'
+services:
+  accounts_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+  accounts_b:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+
+  cart_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+  
+  catalog_a:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+  catalog_b:
+    image: httpd:alpine
+    volumes:
+      - ${PWD}/:/usr/local/apache2/htdocs/
+    expose:
+      - 80
+  
+  cpx:
+    image: cpx:11.1-48.10
+    links:
+      - accounts_a
+      - accounts_b
+      - cart_a
+      - catalog_a
+      - catalog_b
+    ports:
+      - 22
+      - 88
+    tty: true
+    privileged: true
