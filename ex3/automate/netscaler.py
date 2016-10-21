@@ -195,9 +195,16 @@ class NetscalerInterface:
             logger.info("%s:%s is already bound to  service group %s"
                         % (s[0], s[1], grpname))
 
+    def _enable_cs_feature(self):
+        try:
+            self.ns_session.enable_features(['cs'])
+        except Exception as e:
+            logger.warn("Exception: %s" % e.message)
+
     @ns_session_scope
     def configure_cs_frontend(self, cs_name, vip, port, services_dict):
         try:
+            self._enable_cs_feature()
             self._create_cs_vserver(cs_name, vip, port)
             for service_name in services_dict:
                 lb_name = service_name.capitalize() + '_lb'
