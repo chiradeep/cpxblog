@@ -127,6 +127,8 @@ class NetscalerInterface:
 
     @ns_session_scope
     def add_service(self, grpname, srvr_ip, srvr_port):
+        """ Adds a service(ip, port) to an existing service group 
+        """
         try:
             bindings = servicegroup_servicegroupmember_binding.get(
                 self.ns_session, grpname)
@@ -161,40 +163,6 @@ class NetscalerInterface:
         binding.servicegroupname = grpname
         lbvserver_servicegroup_binding.add(self.ns_session, binding)
 
-    def _configure_services(self, grpname, srvrs):
-        to_add = srvrs
-        to_remove = []
-        try:
-            bindings = servicegroup_servicegroupmember_binding.get(
-                self.ns_session, grpname)
-            existing = [(b.ip, b.port) for b in bindings if b.port != 0]
-            to_remove = list(set(existing) - set(srvrs))
-            to_add = list(set(srvrs) - set(existing))
-            to_leave = list(set(srvrs) & set(existing))
-        except nitro_exception:
-            pass  # no bindings
-        for s in to_remove:
-            binding = servicegroup_servicegroupmember_binding()
-            binding.servicegroupname = grpname
-            binding.ip = s[0]
-            binding.port = s[1]
-            logger.info("Unbinding %s:%s from service group %s " % (s[0], s[1],
-                        grpname))
-            servicegroup_servicegroupmember_binding.delete(self.ns_session,
-                                                           binding)
-        for s in to_add:
-            binding = servicegroup_servicegroupmember_binding()
-            binding.servicegroupname = grpname
-            binding.ip = s[0]
-            binding.port = s[1]
-            logger.info("Binding %s:%s from service group %s " %
-                        (s[0], s[1], grpname))
-            servicegroup_servicegroupmember_binding.add(self.ns_session,
-                                                        binding)
-        for s in to_leave:
-            logger.info("%s:%s is already bound to  service group %s"
-                        % (s[0], s[1], grpname))
-
     def _enable_cs_feature(self):
         try:
             self.ns_session.enable_features(['cs'])
@@ -203,6 +171,12 @@ class NetscalerInterface:
 
     @ns_session_scope
     def configure_cs_frontend(self, cs_name, vip, port, services_dict):
+        """ Creates a CS vserver with provided name, vip and port
+        For each key in the services dict, creates an LB Vserver
+        and a service group and binds them together. For each value in
+        the services dict, creates a content switching policy and
+        binds it to the CS vserver and the respective LB vservers.
+        """
         try:
             self._enable_cs_feature()
             self._create_cs_vserver(cs_name, vip, port)
