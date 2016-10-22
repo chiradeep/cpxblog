@@ -19,7 +19,7 @@ CPX_CONTAINER_NAME = 'cpx'
 
 if __name__ == '__main__':
     dockr = DockerInterface()
-    
+
     # find the exposed Netscaler port
     nsport = dockr.get_ns_port(CPX_CONTAINER_NAME)
     logger.info("NS_PORT %s" % str(nsport))
@@ -35,6 +35,8 @@ if __name__ == '__main__':
         url = dockr.get_service_url(SVC_LABEL_NAME, svc, SVC_LABEL_URL)
         logger.info("Service: %s, url: %s" % (svc, url))
         services_urls[svc] = url
+
+    netskaler.wait_for_ready()
 
     # create cs vserver, lb vservers and service groups
     netskaler.configure_cs_frontend(CS_VSERVER_NAME, "127.0.0.1",

@@ -2,6 +2,7 @@
 
 from functools import wraps
 import logging
+import time
 
 from nssrc.com.citrix.netscaler.nitro.exception.nitro_exception \
     import nitro_exception
@@ -49,6 +50,26 @@ class NetscalerInterface:
         self.nslogin = nslogin
         self.nspasswd = nspasswd
         self.ns_session = None
+
+    def wait_for_ready(self):
+        """When the container boots up, the NS container may just have
+           booted up as well and therefore not ready to serve the API.
+           Poll the API until we can login
+        """
+        ip = self.nsip + ":" + self.nsport
+        ready = False
+        while not ready:
+            ns_session = nitro_service(ip, 'HTTP')
+            ns_session.set_credential(self.nslogin, self.nspasswd)
+            ns_session.timeout = 600
+            try:
+                ns_session.login()
+                ready = True
+                logger.info("NetScaler is ready at %s" % ip)
+                ns_session.logout()
+            except Exception:
+                logger.info("NetScaler API is not ready")
+                time.sleep(5)
 
     def _create_service_group(self, grpname, service_type="HTTP"):
         try:
@@ -127,7 +148,7 @@ class NetscalerInterface:
 
     @ns_session_scope
     def add_service(self, grpname, srvr_ip, srvr_port):
-        """ Adds a service(ip, port) to an existing service group 
+        """ Adds a service(ip, port) to an existing service group
         """
         try:
             bindings = servicegroup_servicegroupmember_binding.get(
