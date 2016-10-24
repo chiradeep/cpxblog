@@ -167,6 +167,41 @@ class NetscalerInterface:
         binding.port = srvr_port
         servicegroup_servicegroupmember_binding.add(self.ns_session, binding)
 
+    @ns_session_scope
+    def add_remove_services(self, grpname, ip_ports):
+        """ Reconfigures service group membership to be the
+        same as supplied list of ip and port
+        """
+        to_add = ip_ports
+        to_remove = []
+        try:
+            bindings = servicegroup_servicegroupmember_binding.get(
+                self.ns_session, grpname)
+            existing = [(b.ip, b.port) for b in bindings if b.port != 0]
+            to_remove = list(set(existing) - set(ip_ports))
+            to_add = list(set(ip_ports) - set(existing))
+            to_leave = list(set(ip_ports) & set(existing))
+        except nitro_exception:
+            pass  # no bindings
+        for s in to_remove:
+            binding = servicegroup_servicegroupmember_binding()
+            binding.servicegroupname = grpname
+            binding.ip = s[0]
+            binding.port = s[1]
+            logger.info("Unbinding %s:%s from service group %s " % (s[0], s[1], grpname))
+            servicegroup_servicegroupmember_binding.delete(self.ns_session,
+                                                           binding)
+        for s in to_add:
+            binding = servicegroup_servicegroupmember_binding()
+            binding.servicegroupname = grpname
+            binding.ip = s[0]
+            binding.port = s[1]
+            logger.info("Binding %s:%s from service group %s " % (s[0], s[1], grpname))
+            servicegroup_servicegroupmember_binding.add(self.ns_session,
+                                                        binding)
+        for s in to_leave:
+            logger.info("Service %s:%s is already bound to  service group %s" % (s[0], s[1], grpname))
+
     def _bind_service_group_lb(self, lbname, grpname):
         try:
             bindings = lbvserver_servicegroup_binding.get(self.ns_session,

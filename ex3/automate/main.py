@@ -9,6 +9,7 @@ logger = logging.getLogger('docker_netscaler')
 logger.addFilter(logging.Filter('docker_netscaler'))
 logger.setLevel(logging.DEBUG)
 
+SERVICES = ["accounts", "cart", "catalog"]
 SVC_LABEL_NAME = 'com.widgetshop.service'
 SVC_LABEL_URL = 'com.widgetshop.url'
 
@@ -17,7 +18,9 @@ CS_VSERVER_PORT = 88
 
 CPX_CONTAINER_NAME = 'cpx'
 
+
 if __name__ == '__main__':
+
     dockr = DockerInterface()
 
     # find the exposed Netscaler port
@@ -28,10 +31,9 @@ if __name__ == '__main__':
     netskaler = NetscalerInterface('127.0.0.1', 'nsroot',
                                    'nsroot', str(nsport))
 
-    services = ["accounts", "cart", "catalog"]
     services_urls = {}
 
-    for svc in services:
+    for svc in SERVICES:
         url = dockr.get_service_url(SVC_LABEL_NAME, svc, SVC_LABEL_URL)
         logger.info("Service: %s, url: %s" % (svc, url))
         services_urls[svc] = url
@@ -43,8 +45,7 @@ if __name__ == '__main__':
                                     CS_VSERVER_PORT, services_urls)
 
     # populate service group members into service groups
-    for svc in services:
+    for svc in SERVICES:
         ip_ports = dockr.get_service_members(SVC_LABEL_NAME, svc)
         logger.info("Service: %s, ip_ports=%s", svc, ip_ports)
-        for ip_port in ip_ports:
-            netskaler.add_service(svc, ip_port[0], ip_port[1])
+        netskaler.add_remove_services(svc, ip_ports)
