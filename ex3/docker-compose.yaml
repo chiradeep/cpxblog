@@ -36,7 +36,7 @@ services:
     extends: catalog_a
 
   cpx:
-    image: cpx:11.1-48.10
+    image: store/citrix/netscalercpx:11.1-53.11
     depends_on:
       - catalog_a
       - cart_a
@@ -47,6 +47,8 @@ services:
       - 80
     tty: true
     privileged: true
+    environment:
+      - EULA=yes
 
   automate:
     build: ./automate

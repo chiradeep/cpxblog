@@ -34,7 +34,7 @@ services:
       - 80
   
   cpx:
-    image: cpx:11.1-48.10
+    image: store/citrix/netscalercpx:11.1-53.11
     links:
       - accounts_a
       - accounts_b
@@ -44,5 +44,8 @@ services:
     ports:
       - 22
       - 88
+      - 80
     tty: true
     privileged: true
+    environment:
+      - EULA=yes

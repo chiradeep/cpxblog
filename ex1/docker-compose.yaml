@@ -21,7 +21,7 @@ services:
       - 80
   
   cpx:
-    image: cpx:11.1-48.10
+    image: store/citrix/netscalercpx:11.1-53.11
     links:
       - web_a
       - web_b
@@ -31,3 +31,5 @@ services:
       - 88
     tty: true
     privileged: true
+    environment:
+      - EULA=yes
